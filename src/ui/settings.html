@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paramètres - NAVY Browser</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .settings-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 40px;
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      border: 2px solid var(--border);
+    }
+    
+    .settings-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .settings-header h1 {
+      font-size: 32px;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .back-btn {
+      background: var(--bg-primary);
+      border: 2px solid var(--accent);
+      color: var(--text-primary);
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    
+    .back-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .setting-group {
+      margin-bottom: 32px;
+    }
+    
+    .setting-group h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: var(--accent-hover);
+    }
+    
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: var(--bg-primary);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+    }
+    
+    .setting-item label {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .setting-item small {
+      display: block;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      font-size: 12px;
+    }
+    
+    select, input[type="text"] {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      min-width: 200px;
+    }
+    
+    select:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .toggle-switch {
+      position: relative;
+      width: 60px;
+      height: 30px;
+      background: var(--bg-tertiary);
+      border-radius: 30px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    
+    .toggle-switch.active {
+      background: var(--accent);
+    }
+    
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+    }
+    
+    .toggle-switch.active::after {
+      transform: translateX(30px);
+    }
+    
+    .save-btn {
+      background: var(--accent-gradient);
+      border: none;
+      color: white;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 24px;
+      transition: all 0.2s ease;
+    }
+    
+    .save-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 168, 232, 0.3);
+    }
+    
+    .success-message {
+      background: #51cf66;
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 20px;
+      display: none;
+      text-align: center;
+      font-weight: 600;
+    }
+    
+    .success-message.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="settings-container">
+    <div class="settings-header">
+      <button class="back-btn" onclick="window.location.href='index.html'">← Retour</button>
+      <h1>⚙️ Paramètres</h1>
+    </div>
+
+    <!-- Apparence -->
+    <div class="setting-group">
+      <h2>🎨 Apparence</h2>
+      
+      <div class="setting-item">
+        <div>
+          <label>Thème</label>
+          <small>Personnalisez l'apparence du navigateur</small>
+        </div>
+        <select id="theme-select">
+          <option value="dark">Sombre (Navy)</option>
+          <option value="light">Clair</option>
+          <option value="blue">Bleu océan</option>
+          <option value="green">Vert forêt</option>
+        </select>
+      </div>
+      
+      <div class="setting-item">
+        <div>
+          <label>Afficher la barre de favoris</label>
+          <small>Activez pour un accès rapide à vos sites</small>
+        </div>
+        <div class="toggle-switch" id="bookmark-bar-toggle"></div>
+      </div>
+    </div>
+
+    <!-- Recherche -->
+    <div class="setting-group">
+      <h2>🔍 Recherche</h2>
+      
+      <div class="setting-item">
+        <div>
+          <label>Moteur de recherche par défaut</label>
+          <small>Utilisé pour les recherches dans la barre d'adresse</small>
+        </div>
+        <select id="search-engine-select">
+          <option value="https://www.google.fr/search?q=">Google France</option>
+          <option value="https://www.google.com/search?q=">Google</option>
+          <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+          <option value="https://www.bing.com/search?q=">Bing</option>
+          <option value="https://www.qwant.com/?q=">Qwant</option>
+        </select>
+      </div>
+      
+      <div class="setting-item">
+        <div>
+          <label>Page d'accueil</label>
+          <small>Page chargée au démarrage</small>
+        </div>
+        <input type="text" id="home-page-input" placeholder="https://www.google.fr">
+      </div>
+    </div>
+
+    <!-- Performance -->
+    <div class="setting-group">
+      <h2>⚡ Performance</h2>
+      
+      <div class="setting-item">
+        <div>
+          <label>Mode Optimisation</label>
+          <small>Réduit la consommation de RAM et CPU</small>
+        </div>
+        <div class="toggle-switch" id="optimization-toggle"></div>
+      </div>
+      
+      <div class="setting-item">
+        <div>
+          <label>Bloqueur de pub ultra-agressif</label>
+          <small>Recommandé : toujours activé</small>
+        </div>
+        <div class="toggle-switch active" id="adblock-toggle"></div>
+      </div>
+    </div>
+
+    <!-- Confidentialité -->
+    <div class="setting-group">
+      <h2>🔐 Confidentialité</h2>
+      
+      <div class="setting-item">
+        <div>
+          <label>Gestionnaire de mots de passe</label>
+          <small>Enregistre vos mots de passe localement (chiffrés)</small>
+        </div>
+        <div class="toggle-switch active" id="password-manager-toggle"></div>
+      </div>
+    </div>
+
+    <button class="save-btn" id="save-settings-btn">💾 Enregistrer les paramètres</button>
+    <div class="success-message" id="success-message">✅ Paramètres sauvegardés avec succès !</div>
+  </div>
+
+  <script src="settings-ui.js"></script>
+</body>
+</html>
