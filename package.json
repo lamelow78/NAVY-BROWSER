@@ -37,27 +37,22 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "assets/logo.png",
       "artifactName": "NAVY-Setup-${version}.${ext}"
     },
     "mac": {
       "target": "dmg",
-      "icon": "assets/logo.png",
       "category": "public.app-category.productivity",
       "artifactName": "NAVY-${version}.${ext}"
     },
     "linux": {
       "target": ["AppImage"],
-      "icon": "assets/logo.png",
       "category": "Network",
       "artifactName": "NAVY-${version}.${ext}"
     },
     "nsis": {
       "oneClick": true,
       "allowToChangeInstallationDirectory": false,
-      "createDesktopShortcut": true,
-      "installerIcon": "assets/logo.png",
-      "uninstallerIcon": "assets/logo.png"
+      "createDesktopShortcut": true
     }
   }
 }
