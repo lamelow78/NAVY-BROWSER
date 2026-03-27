@@ -1,38 +1,87 @@
 const Store = require('electron-store');
 
-class SettingsManager {
-  constructor() {
-    this.store = new Store({
-      name: 'navy-settings',
-      defaults: {
-        theme: 'dark', // dark, light, blue, green
-        searchEngine: 'https://www.google.fr/search?q=',
-        optimizationMode: false,
-        adBlockEnabled: true,
-        showBookmarkBar: true,
-        bookmarks: [],
-        homePage: 'https://www.google.fr'
-      }
-    });
+const SEARCH_ENGINES = {
+  'google-fr': {
+    id: 'google-fr',
+    label: 'Google France',
+    queryUrl: 'https://www.google.fr/search?q=',
+    homeUrl: 'https://www.google.fr'
+  },
+  google: {
+    id: 'google',
+    label: 'Google',
+    queryUrl: 'https://www.google.com/search?q=',
+    homeUrl: 'https://www.google.com'
+  },
+  duckduckgo: {
+    id: 'duckduckgo',
+    label: 'DuckDuckGo',
+    queryUrl: 'https://duckduckgo.com/?q=',
+    homeUrl: 'https://duckduckgo.com'
+  },
+  bing: {
+    id: 'bing',
+    label: 'Bing',
+    queryUrl: 'https://www.bing.com/search?q=',
+    homeUrl: 'https://www.bing.com'
+  },
+  qwant: {
+    id: 'qwant',
+    label: 'Qwant',
+    queryUrl: 'https://www.qwant.com/?q=',
+    homeUrl: 'https://www.qwant.com'
+  },
+  startpage: {
+    id: 'startpage',
+    label: 'Startpage',
+    queryUrl: 'https://www.startpage.com/sp/search?query=',
+    homeUrl: 'https://www.startpage.com'
+  }
+};
+
+const DEFAULT_SETTINGS = {
+  theme: 'dark',
+  searchEngineId: 'google-fr',
+  searchEngine: SEARCH_ENGINES['google-fr'].queryUrl,
+  optimizationMode: false,
+  adBlockEnabled: true,
+  showBookmarkBar: true,
+  passwordManagerEnabled: true,
+  homePage: SEARCH_ENGINES['google-fr'].homeUrl
+};
+
+function normalizeSettings(settings = {}) {
+  const merged = {
+    ...DEFAULT_SETTINGS,
+    ...settings
+  };
+
+  if (!SEARCH_ENGINES[merged.searchEngineId]) {
+    merged.searchEngineId = DEFAULT_SETTINGS.searchEngineId;
   }
 
-  getSettings() {
-    return this.store.store;
+  merged.searchEngine = SEARCH_ENGINES[merged.searchEngineId].queryUrl;
+
+  if (typeof merged.homePage !== 'string' || !merged.homePage.trim()) {
+    merged.homePage = SEARCH_ENGINES[merged.searchEngineId].homeUrl;
   }
 
-  saveSettings(newSettings) {
-    for (const [key, value] of Object.entries(newSettings)) {
-      this.store.set(key, value);
-    }
-  }
-
-  getBookmarks() {
-    return this.store.get('bookmarks', []);
-  }
-
-  saveBookmarks(bookmarks) {
-    this.store.set('bookmarks', bookmarks);
-  }
+  return merged;
 }
 
-module.exports = SettingsManager;
+function createSettingsStore() {
+  return new Store({
+    name: 'navy-preferences',
+    defaults: {
+      settings: DEFAULT_SETTINGS,
+      bookmarks: []
+    }
+  });
+}
+
+module.exports = {
+  SEARCH_ENGINES,
+  DEFAULT_SETTINGS,
+  normalizeSettings,
+  createSettingsStore
+};

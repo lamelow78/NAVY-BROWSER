@@ -6,130 +6,169 @@
   <title>NAVY Browser</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body data-theme="dark">
-  <!-- Barre de navigation -->
-  <div class="navbar">
-    <div class="nav-controls">
-      <button id="back-btn" class="nav-btn" title="Retour">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
-        </svg>
-      </button>
-      
-      <button id="forward-btn" class="nav-btn" title="Suivant">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M5 12h14M12 5l7 7-7 7"/>
-        </svg>
-      </button>
-      
-      <button id="reload-btn" class="nav-btn" title="Actualiser">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0118.8-4.3M22 12.5a10 10 0 01-18.8 4.2"/>
-        </svg>
-      </button>
-      
-      <button id="home-btn" class="nav-btn" title="Accueil">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-          <polyline points="9 22 9 12 15 12 15 22"/>
-        </svg>
-      </button>
-    </div>
+<body data-theme="dark" class="browser-shell">
+  <div class="app-backdrop"></div>
 
-    <!-- Barre d'adresse -->
-    <div class="url-bar">
-      <div class="security-indicator" id="security-lock">🔒</div>
-      <input 
-        type="text" 
-        id="url-input" 
-        placeholder="Rechercher sur Google ou entrer une URL..."
-        autocomplete="off"
-      />
-      <button id="bookmark-add-btn" class="icon-btn" title="Ajouter aux favoris">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
-        </svg>
-      </button>
-    </div>
-
-    <!-- Boutons droite -->
-    <div class="nav-right">
-      <div class="shields-button" id="shields-btn" title="NAVY Shields">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-        </svg>
-        <span id="blocked-count">0</span>
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="nav-controls">
+        <button id="back-btn" class="nav-btn" title="Retour">&lt;</button>
+        <button id="forward-btn" class="nav-btn" title="Suivant">&gt;</button>
+        <button id="reload-btn" class="nav-btn" title="Actualiser">R</button>
+        <button id="home-btn" class="nav-btn" title="Accueil">H</button>
       </div>
 
-      <button id="passwords-btn" class="nav-btn" title="Mots de passe">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0110 0v4"/>
-        </svg>
-      </button>
+      <div class="url-bar">
+        <div class="security-indicator" id="security-lock">Securise</div>
+        <select id="engine-select" class="engine-select" title="Moteur de recherche"></select>
+        <input
+          type="text"
+          id="url-input"
+          placeholder="Rechercher sur le web ou entrer une URL"
+          autocomplete="off"
+        />
+        <button id="bookmark-add-btn" class="icon-btn" title="Ajouter aux favoris">Fav</button>
+      </div>
 
-      <button id="settings-btn" class="nav-btn" title="Paramètres">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m7.08 7.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m7.08-7.08l4.24-4.24"/>
-        </svg>
-      </button>
+      <div class="nav-right">
+        <button id="optimization-chip" class="status-chip" title="Mode optimisation">Mode opti</button>
+        <button id="shields-btn" class="shields-button" title="Protection NAVY">
+          <span class="shields-label">Shields</span>
+          <span id="blocked-count">0</span>
+        </button>
+        <button id="passwords-btn" class="nav-btn nav-btn-strong" title="Mots de passe">Coffre</button>
+        <button id="settings-btn" class="nav-btn" title="Parametres">Cfg</button>
+      </div>
     </div>
-  </div>
 
-  <!-- Barre de favoris -->
-  <div class="bookmarks-bar" id="bookmarks-bar">
-    <div class="bookmarks-container" id="bookmarks-container">
-      <!-- Les favoris seront ajoutés ici dynamiquement -->
+    <div class="subbar">
+      <div class="page-meta">
+        <strong id="page-title">NAVY</strong>
+        <span id="page-host">Pret pour la navigation</span>
+      </div>
+      <div class="quick-actions">
+        <button class="ghost-chip engine-chip" data-engine="google-fr">Google FR</button>
+        <button class="ghost-chip engine-chip" data-engine="duckduckgo">DuckDuckGo</button>
+        <button class="ghost-chip engine-chip" data-engine="bing">Bing</button>
+        <button class="ghost-chip engine-chip" data-engine="qwant">Qwant</button>
+      </div>
     </div>
-  </div>
+  </header>
 
-  <!-- Webview -->
-  <webview id="browser-view" src="https://www.google.fr" allowpopups></webview>
+  <section class="bookmarks-bar" id="bookmarks-bar">
+    <div class="section-label">Favoris</div>
+    <div class="bookmarks-container" id="bookmarks-container"></div>
+  </section>
 
-  <!-- Panneau Shields -->
-  <div class="shields-panel" id="shields-panel">
-    <h3>🛡️ NAVY Shields</h3>
+  <main class="browser-stage">
+    <webview id="browser-view" src="about:blank"></webview>
+  </main>
+
+  <aside class="floating-panel shields-panel" id="shields-panel">
+    <div class="panel-header">
+      <div>
+        <p class="panel-eyebrow">Protection active</p>
+        <h3>NAVY Shields</h3>
+      </div>
+      <button class="panel-close" data-close-panel="shields-panel">Fermer</button>
+    </div>
+
     <div class="shield-stats">
-      <div class="stat-item">
+      <div class="stat-card">
         <span class="stat-number" id="total-blocked">0</span>
-        <span class="stat-label">Pubs bloquées</span>
+        <span class="stat-label">Bloque total</span>
       </div>
-      <div class="stat-item">
+      <div class="stat-card">
+        <span class="stat-number" id="ads-blocked">0</span>
+        <span class="stat-label">Publicites</span>
+      </div>
+      <div class="stat-card">
         <span class="stat-number" id="trackers-blocked">0</span>
         <span class="stat-label">Trackers</span>
       </div>
-      <div class="stat-item">
-        <span class="stat-number">98%</span>
-        <span class="stat-label">Protection</span>
+      <div class="stat-card">
+        <span class="stat-number" id="optimization-blocked">0</span>
+        <span class="stat-label">Mode opti</span>
       </div>
     </div>
-    <p class="shield-info">Mode: <strong>Ultra-Agressif</strong></p>
-  </div>
 
-  <!-- Panneau Mots de passe -->
-  <div class="password-panel" id="password-panel">
-    <h3>🔐 Mots de passe sauvegardés</h3>
-    <div id="password-list" class="password-list">
-      <!-- Les mots de passe seront listés ici -->
+    <div class="setting-inline">
+      <div>
+        <strong>Blocage pub</strong>
+        <p>Coupe les regies pub et la plupart des traceurs.</p>
+      </div>
+      <button id="adblock-toggle" class="toggle-btn"></button>
     </div>
-  </div>
 
-  <!-- Popup sauvegarde mot de passe -->
+    <div class="setting-inline">
+      <div>
+        <strong>Mode optimisation</strong>
+        <p>Bloque les medias lourds et les polices externes.</p>
+      </div>
+      <button id="optimization-toggle" class="toggle-btn"></button>
+    </div>
+  </aside>
+
+  <aside class="floating-panel password-panel" id="password-panel">
+    <div class="panel-header">
+      <div>
+        <p class="panel-eyebrow">Coffre-fort local</p>
+        <h3>Mots de passe securises</h3>
+      </div>
+      <div class="panel-actions">
+        <button id="vault-lock-btn" class="panel-close hidden">Verrouiller</button>
+        <button class="panel-close" data-close-panel="password-panel">Fermer</button>
+      </div>
+    </div>
+
+    <p id="vault-status-text" class="panel-copy">Configure un mot de passe maitre pour proteger tes identifiants en local.</p>
+    <p id="vault-feedback" class="feedback-text"></p>
+
+    <div id="vault-setup-view" class="vault-view">
+      <label class="field">
+        <span>Mot de passe maitre</span>
+        <input id="vault-master-password" type="password" placeholder="Au moins 8 caracteres">
+      </label>
+      <label class="field">
+        <span>Confirmation</span>
+        <input id="vault-master-confirm" type="password" placeholder="Retape le mot de passe maitre">
+      </label>
+      <button id="vault-create-btn" class="primary-btn">Creer le coffre-fort</button>
+    </div>
+
+    <div id="vault-unlock-view" class="vault-view hidden">
+      <label class="field">
+        <span>Deverrouiller le coffre</span>
+        <input id="vault-unlock-password" type="password" placeholder="Mot de passe maitre">
+      </label>
+      <button id="vault-unlock-btn" class="primary-btn">Deverrouiller</button>
+    </div>
+
+    <div id="vault-list-view" class="vault-view hidden">
+      <div class="vault-toolbar">
+        <input id="vault-filter" type="text" placeholder="Filtrer par site ou identifiant">
+        <button id="vault-refresh-btn" class="secondary-btn">Actualiser</button>
+      </div>
+      <div id="password-list" class="password-list"></div>
+    </div>
+  </aside>
+
   <div class="password-save-popup" id="password-save-popup">
     <div class="popup-content">
-      <h4>💾 Sauvegarder le mot de passe ?</h4>
-      <p>Voulez-vous enregistrer ce mot de passe dans NAVY ?</p>
+      <h4>Enregistrer ce mot de passe ?</h4>
+      <p>NAVY a detecte un identifiant sur ce site.</p>
       <div class="popup-info">
-        <strong>Site :</strong> <span id="popup-site">example.com</span><br>
-        <strong>Identifiant :</strong> <span id="popup-username">user@example.com</span>
+        <div><strong>Site :</strong> <span id="popup-site">example.com</span></div>
+        <div><strong>Identifiant :</strong> <span id="popup-username">user@example.com</span></div>
       </div>
       <div class="popup-buttons">
-        <button id="save-password-btn" class="btn-primary">Enregistrer</button>
-        <button id="cancel-password-btn" class="btn-secondary">Non merci</button>
+        <button id="save-password-btn" class="primary-btn">Enregistrer</button>
+        <button id="cancel-password-btn" class="secondary-btn">Ignorer</button>
       </div>
     </div>
   </div>
+
+  <div class="toast" id="toast"></div>
 
   <script src="renderer.js"></script>
 </body>
