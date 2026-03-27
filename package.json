@@ -1,7 +1,7 @@
 {
   "name": "navy-browser",
   "productName": "NAVY",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Le navigateur qui bloque TOUT",
   "main": "src/main.js",
   "author": "lamelow78",
@@ -37,17 +37,17 @@
           "arch": ["x64"]
         }
       ],
-      "artifactName": "NAVY-Setup-${version}.${ext}"
+      "artifactName": "NAVY-Setup.${ext}"
     },
     "mac": {
       "target": "dmg",
       "category": "public.app-category.productivity",
-      "artifactName": "NAVY-${version}.${ext}"
+      "artifactName": "NAVY.${ext}"
     },
     "linux": {
       "target": ["AppImage"],
       "category": "Network",
-      "artifactName": "NAVY-${version}.${ext}"
+      "artifactName": "NAVY.${ext}"
     },
     "nsis": {
       "oneClick": true,
