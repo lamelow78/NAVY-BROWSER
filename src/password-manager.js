@@ -149,6 +149,19 @@ class PasswordManager {
     };
   }
 
+  baseDomain(domain = '') {
+    const parts = String(domain || '')
+      .toLowerCase()
+      .split('.')
+      .filter(Boolean);
+
+    if (parts.length <= 2) {
+      return parts.join('.');
+    }
+
+    return parts.slice(-2).join('.');
+  }
+
   savePassword(data) {
     try {
       this.ensureUnlocked();
@@ -207,7 +220,10 @@ class PasswordManager {
       this.ensureUnlocked();
       const { origin, domain } = this.parseUrl(url);
       const items = Array.isArray(this.vault.items) ? this.vault.items : [];
-      const match = items.find((item) => item.origin === origin) || items.find((item) => item.domain === domain);
+      const domainRoot = this.baseDomain(domain);
+      const match = items.find((item) => item.origin === origin)
+        || items.find((item) => item.domain === domain)
+        || items.find((item) => this.baseDomain(item.domain) === domainRoot);
 
       if (!match) {
         return null;

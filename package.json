@@ -1,7 +1,7 @@
 {
   "name": "navy-browser",
   "productName": "NAVY",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Le navigateur qui bloque TOUT",
   "main": "src/main.js",
   "author": "lamelow78",
@@ -31,6 +31,7 @@
       "assets/**/*"
     ],
     "win": {
+      "icon": "assets/logo.ico",
       "target": [
         {
           "target": "nsis",

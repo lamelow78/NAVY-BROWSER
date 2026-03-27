@@ -1,11 +1,13 @@
-const { app, BrowserWindow, ipcMain, session } = require('electron');
+const { Menu, app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
 
 const PasswordManager = require('./password-manager');
 const {
   SEARCH_ENGINES,
   DEFAULT_SETTINGS,
+  createBookmarkItem,
   createSettingsStore,
+  normalizeBookmarks,
   normalizeSettings
 } = require('./settings');
 
@@ -59,7 +61,7 @@ const blockedUrlFragments = [
   'beacon'
 ];
 
-const optimizationResourceTypes = new Set(['font', 'media']);
+const optimizationResourceTypes = new Set(['font', 'media', 'image', 'imageset', 'object', 'ping', 'prefetch']);
 
 function getSettings() {
   return normalizeSettings(settingsStore.get('settings', DEFAULT_SETTINGS));
@@ -75,6 +77,16 @@ function saveSettings(newSettings = {}) {
   return merged;
 }
 
+function getBookmarksTree() {
+  return normalizeBookmarks(settingsStore.get('bookmarks', []));
+}
+
+function saveBookmarksTree(tree) {
+  const normalized = normalizeBookmarks(tree);
+  settingsStore.set('bookmarks', normalized);
+  return normalized;
+}
+
 function sendProtectionStats() {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('protection-stats', protectionStats);
@@ -83,6 +95,23 @@ function sendProtectionStats() {
 
 function matchesHost(hostname, fragments) {
   return fragments.some((fragment) => hostname === fragment || hostname.endsWith(`.${fragment}`));
+}
+
+function parseHost(value) {
+  if (!value) {
+    return '';
+  }
+
+  try {
+    return new URL(value).hostname.toLowerCase();
+  } catch (error) {
+    return '';
+  }
+}
+
+function isThirdPartyRequest(details, hostname) {
+  const referrerHost = parseHost(details.referrer);
+  return Boolean(referrerHost && referrerHost !== hostname && !hostname.endsWith(`.${referrerHost}`));
 }
 
 function classifyRequest(details) {
@@ -110,8 +139,14 @@ function classifyRequest(details) {
     return 'trackers';
   }
 
-  if (settings.optimizationMode && optimizationResourceTypes.has(details.resourceType)) {
-    return 'optimization';
+  if (settings.optimizationMode) {
+    if (optimizationResourceTypes.has(details.resourceType) && (details.resourceType !== 'image' || isThirdPartyRequest(details, hostname))) {
+      return 'optimization';
+    }
+
+    if (details.resourceType === 'script' && blockedUrlFragments.some((fragment) => normalizedUrl.includes(fragment))) {
+      return 'optimization';
+    }
   }
 
   return null;
@@ -138,8 +173,43 @@ function setupSessionProtections() {
   });
 }
 
+function addBookmarkToFolder(nodes, folderId, bookmarkNode) {
+  for (const node of nodes) {
+    if (node.type === 'folder') {
+      if (node.id === folderId) {
+        node.items.unshift(bookmarkNode);
+        return true;
+      }
+
+      if (addBookmarkToFolder(node.items, folderId, bookmarkNode)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function deleteBookmarkNode(nodes, nodeId) {
+  const index = nodes.findIndex((node) => node.id === nodeId);
+
+  if (index >= 0) {
+    nodes.splice(index, 1);
+    return true;
+  }
+
+  for (const node of nodes) {
+    if (node.type === 'folder' && deleteBookmarkNode(node.items, nodeId)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function createWindow() {
   const settings = getSettings();
+  const iconPath = path.join(__dirname, process.platform === 'win32' ? '../assets/logo.ico' : '../assets/logo.png');
 
   mainWindow = new BrowserWindow({
     width: 1460,
@@ -147,7 +217,8 @@ function createWindow() {
     minWidth: 1180,
     minHeight: 760,
     backgroundColor: settings.theme === 'light' ? '#f4f7fb' : '#07111f',
-    icon: path.join(__dirname, '../assets/logo.png'),
+    icon: iconPath,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -156,6 +227,8 @@ function createWindow() {
       spellcheck: true
     }
   });
+
+  mainWindow.removeMenu();
 
   mainWindow.webContents.on('will-attach-webview', (event, webPreferences, params) => {
     webPreferences.preload = path.join(__dirname, 'guest-preload.js');
@@ -176,27 +249,25 @@ ipcMain.handle('get-settings', () => getSettings());
 ipcMain.handle('save-settings', (event, newSettings) => saveSettings(newSettings));
 ipcMain.handle('get-search-engines', () => SEARCH_ENGINES);
 
-ipcMain.handle('get-bookmarks', () => settingsStore.get('bookmarks', []));
+ipcMain.handle('get-bookmarks', () => getBookmarksTree());
+ipcMain.handle('save-bookmarks-tree', (event, tree) => saveBookmarksTree(tree));
 
 ipcMain.handle('add-bookmark', (event, bookmark) => {
-  const bookmarks = settingsStore.get('bookmarks', []);
-  const nextBookmark = {
-    title: bookmark.title || 'Nouvel onglet',
-    url: bookmark.url,
-    createdAt: new Date().toISOString()
-  };
+  const tree = getBookmarksTree();
+  const bookmarkNode = createBookmarkItem(bookmark);
+  const preferredFolderId = bookmark.folderId || (tree[0] && tree[0].id);
 
-  const deduped = bookmarks.filter((item) => item.url !== nextBookmark.url);
-  deduped.unshift(nextBookmark);
-  settingsStore.set('bookmarks', deduped.slice(0, 20));
-  return deduped.slice(0, 20);
+  if (!addBookmarkToFolder(tree, preferredFolderId, bookmarkNode) && tree[0] && tree[0].type === 'folder') {
+    tree[0].items.unshift(bookmarkNode);
+  }
+
+  return saveBookmarksTree(tree);
 });
 
-ipcMain.handle('delete-bookmark', (event, index) => {
-  const bookmarks = settingsStore.get('bookmarks', []);
-  bookmarks.splice(index, 1);
-  settingsStore.set('bookmarks', bookmarks);
-  return bookmarks;
+ipcMain.handle('delete-bookmark', (event, nodeId) => {
+  const tree = getBookmarksTree();
+  deleteBookmarkNode(tree, nodeId);
+  return saveBookmarksTree(tree);
 });
 
 ipcMain.handle('get-protection-stats', () => protectionStats);
@@ -211,6 +282,8 @@ ipcMain.handle('get-all-passwords', () => passwordManager.getAllPasswords());
 ipcMain.handle('delete-password', (event, id) => passwordManager.deletePassword(id));
 
 app.whenReady().then(() => {
+  app.setAppUserModelId('com.navy.browser');
+  Menu.setApplicationMenu(null);
   setupSessionProtections();
   createWindow();
 

@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const Store = require('electron-store');
 
 const SEARCH_ENGINES = {
@@ -50,6 +51,69 @@ const DEFAULT_SETTINGS = {
   homePage: SEARCH_ENGINES['google-fr'].homeUrl
 };
 
+function createBookmarkFolder(title = 'Nouveau dossier', id = crypto.randomUUID(), items = []) {
+  return {
+    id,
+    type: 'folder',
+    title,
+    items
+  };
+}
+
+function createBookmarkItem(bookmark = {}) {
+  return {
+    id: bookmark.id || crypto.randomUUID(),
+    type: 'bookmark',
+    title: bookmark.title || 'Nouvel onglet',
+    url: bookmark.url,
+    createdAt: bookmark.createdAt || new Date().toISOString()
+  };
+}
+
+function normalizeBookmarkNode(node) {
+  if (!node || typeof node !== 'object') {
+    return null;
+  }
+
+  if (node.type === 'folder' || Array.isArray(node.items)) {
+    return createBookmarkFolder(
+      node.title || 'Dossier',
+      node.id || crypto.randomUUID(),
+      (node.items || [])
+        .map((item) => normalizeBookmarkNode(item))
+        .filter(Boolean)
+    );
+  }
+
+  if (typeof node.url === 'string' && node.url.trim()) {
+    return createBookmarkItem(node);
+  }
+
+  return null;
+}
+
+function normalizeBookmarks(bookmarks = []) {
+  if (!Array.isArray(bookmarks) || !bookmarks.length) {
+    return [createBookmarkFolder('Favoris')];
+  }
+
+  if (bookmarks.every((item) => item && typeof item.url === 'string' && !item.type)) {
+    return [
+      createBookmarkFolder(
+        'Favoris',
+        crypto.randomUUID(),
+        bookmarks.map((bookmark) => createBookmarkItem(bookmark))
+      )
+    ];
+  }
+
+  const normalized = bookmarks
+    .map((item) => normalizeBookmarkNode(item))
+    .filter(Boolean);
+
+  return normalized.length ? normalized : [createBookmarkFolder('Favoris')];
+}
+
 function normalizeSettings(settings = {}) {
   const merged = {
     ...DEFAULT_SETTINGS,
@@ -74,7 +138,7 @@ function createSettingsStore() {
     name: 'navy-preferences',
     defaults: {
       settings: DEFAULT_SETTINGS,
-      bookmarks: []
+      bookmarks: [createBookmarkFolder('Favoris')]
     }
   });
 }
@@ -82,6 +146,9 @@ function createSettingsStore() {
 module.exports = {
   SEARCH_ENGINES,
   DEFAULT_SETTINGS,
+  createBookmarkFolder,
+  createBookmarkItem,
+  normalizeBookmarks,
   normalizeSettings,
   createSettingsStore
 };
