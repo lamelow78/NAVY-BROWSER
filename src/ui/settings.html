@@ -15,8 +15,8 @@
         <p class="settings-card-eyebrow">Configuration</p>
         <h1 class="settings-title">Parametres NAVY</h1>
         <p class="settings-title-copy">
-          Ajuste le navigateur, choisis ton moteur de recherche, active le mode optimisation
-          et garde une interface simple mais plus robuste.
+          Regle le moteur de recherche, le niveau de compacite, le comportement au lancement
+          et les automatismes du coffre-fort local.
         </p>
       </div>
 
@@ -30,9 +30,43 @@
       <article class="settings-card">
         <div class="settings-card-header">
           <div>
-            <p class="settings-card-eyebrow">Apparence</p>
-            <h2>Interface</h2>
-            <p class="settings-card-copy">Choisis un theme propre et garde les favoris visibles si tu t'en sers souvent.</p>
+            <p class="settings-card-eyebrow">Recherche</p>
+            <h2>Moteur et page d'accueil</h2>
+            <p class="settings-card-copy">Le moteur choisi ici sera utilise par la barre principale du navigateur.</p>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <strong>Moteur de recherche</strong>
+            <span class="settings-help">Google France reste dispo, mais tu peux le remplacer ici.</span>
+          </div>
+          <select id="search-engine-select" class="settings-select"></select>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <strong>Page d'accueil</strong>
+            <span class="settings-help">Laisse vide pour reprendre automatiquement la page du moteur choisi.</span>
+          </div>
+          <input id="home-page-input" class="settings-input" type="text" placeholder="https://www.google.fr">
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <strong>Ouvrir sur la page d'accueil</strong>
+            <span class="settings-help">Au demarrage, NAVY ouvre directement la page d'accueil si cette option est active.</span>
+          </div>
+          <button id="launch-home-toggle" class="toggle-btn"></button>
+        </div>
+      </article>
+
+      <article class="settings-card">
+        <div class="settings-card-header">
+          <div>
+            <p class="settings-card-eyebrow">Interface</p>
+            <h2>Visuel et compacite</h2>
+            <p class="settings-card-copy">Donne plus d'espace au web et ajuste la presence des controles visuels.</p>
           </div>
         </div>
 
@@ -47,35 +81,25 @@
         <div class="settings-row">
           <div class="settings-row-label">
             <strong>Barre de favoris</strong>
-            <span class="settings-help">Affiche ou masque les raccourcis favoris sous la barre d'adresse.</span>
+            <span class="settings-help">Affiche ou masque les favoris rapides sous la barre d'adresse.</span>
           </div>
           <button id="bookmark-bar-toggle" class="toggle-btn"></button>
         </div>
-      </article>
 
-      <article class="settings-card">
-        <div class="settings-card-header">
-          <div>
-            <p class="settings-card-eyebrow">Recherche</p>
-            <h2>Moteur et accueil</h2>
-            <p class="settings-card-copy">Google France reste disponible, mais tu peux aussi basculer vers plusieurs moteurs.</p>
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <strong>Boutons compacts en icones</strong>
+            <span class="settings-help">Garde une barre principale plus propre avec des boutons en mode compact.</span>
           </div>
+          <button id="compact-buttons-toggle" class="toggle-btn"></button>
         </div>
 
         <div class="settings-row">
           <div class="settings-row-label">
-            <strong>Moteur de recherche</strong>
-            <span class="settings-help">Utilise le moteur choisi pour les recherches tapees dans la barre d'adresse.</span>
+            <strong>Reduire les animations</strong>
+            <span class="settings-help">Calme les transitions pour une sensation plus immediate.</span>
           </div>
-          <select id="search-engine-select" class="settings-select"></select>
-        </div>
-
-        <div class="settings-row">
-          <div class="settings-row-label">
-            <strong>Page d'accueil</strong>
-            <span class="settings-help">Laisse vide pour reprendre la page d'accueil du moteur choisi.</span>
-          </div>
-          <input id="home-page-input" class="settings-input" type="text" placeholder="https://www.google.fr">
+          <button id="reduce-motion-toggle" class="toggle-btn"></button>
         </div>
       </article>
 
@@ -99,7 +123,7 @@
         <div class="settings-row">
           <div class="settings-row-label">
             <strong>Mode optimisation</strong>
-            <span class="settings-help">Reduit certaines ressources lourdes pour une navigation plus legere.</span>
+            <span class="settings-help">Reduit certaines ressources lourdes et resserre l'interface.</span>
           </div>
           <button id="optimization-toggle" class="toggle-btn"></button>
         </div>
@@ -107,14 +131,40 @@
         <div class="settings-row">
           <div class="settings-row-label">
             <strong>Gestionnaire de mots de passe</strong>
-            <span class="settings-help">Active la detection automatique et le coffre-fort chiffre en local.</span>
+            <span class="settings-help">Active ou coupe completement le coffre-fort local.</span>
           </div>
           <button id="password-manager-toggle" class="toggle-btn"></button>
         </div>
       </article>
+
+      <article class="settings-card">
+        <div class="settings-card-header">
+          <div>
+            <p class="settings-card-eyebrow">Automatisation</p>
+            <h2>Coffre-fort et formulaires</h2>
+            <p class="settings-card-copy">Controle separement l'enregistrement automatique et le remplissage automatique.</p>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <strong>Enregistrement auto</strong>
+            <span class="settings-help">Propose ou enregistre les identifiants detectes quand une connexion est soumise.</span>
+          </div>
+          <button id="auto-save-passwords-toggle" class="toggle-btn"></button>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <strong>Remplissage auto</strong>
+            <span class="settings-help">Quand NAVY reconnait la page, il remplit automatiquement les champs.</span>
+          </div>
+          <button id="auto-fill-passwords-toggle" class="toggle-btn"></button>
+        </div>
+      </article>
     </section>
 
-    <div id="settings-status" class="settings-status">Les modifications seront appliquees au prochain affichage des ecrans concernes.</div>
+    <div id="settings-status" class="settings-status">Les modifications seront appliquees au prochain affichage de l'ecran concerne.</div>
   </main>
 
   <script src="settings-ui.js"></script>

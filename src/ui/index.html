@@ -18,7 +18,7 @@
 
       <div class="tabs-list" id="tabs-list"></div>
 
-      <button id="new-tab-btn" class="tab-add-btn" title="Nouvel onglet">
+      <button id="new-tab-btn" class="tab-add-btn" title="Nouvel onglet" aria-label="Nouvel onglet">
         <svg viewBox="0 0 24 24" class="icon">
           <path d="M12 5v14M5 12h14"></path>
         </svg>
@@ -27,26 +27,26 @@
 
     <div class="toolbar">
       <div class="nav-controls">
-        <button id="back-btn" class="nav-btn" title="Retour">
+        <button id="back-btn" class="nav-btn" title="Retour" aria-label="Retour">
           <svg viewBox="0 0 24 24" class="icon">
             <path d="M15 18l-6-6 6-6"></path>
           </svg>
         </button>
 
-        <button id="forward-btn" class="nav-btn" title="Suivant">
+        <button id="forward-btn" class="nav-btn" title="Suivant" aria-label="Suivant">
           <svg viewBox="0 0 24 24" class="icon">
             <path d="M9 18l6-6-6-6"></path>
           </svg>
         </button>
 
-        <button id="reload-btn" class="nav-btn" title="Actualiser">
+        <button id="reload-btn" class="nav-btn" title="Actualiser" aria-label="Actualiser">
           <svg viewBox="0 0 24 24" class="icon">
             <path d="M20 11a8 8 0 1 0 2 5.5"></path>
             <path d="M20 4v7h-7"></path>
           </svg>
         </button>
 
-        <button id="home-btn" class="nav-btn" title="Accueil">
+        <button id="home-btn" class="nav-btn" title="Accueil" aria-label="Accueil">
           <svg viewBox="0 0 24 24" class="icon">
             <path d="M3 11.5l9-7 9 7"></path>
             <path d="M5 10v10h14V10"></path>
@@ -57,18 +57,6 @@
       <div class="address-shell">
         <div class="security-indicator" id="security-lock">Securise</div>
 
-        <div class="engine-picker" id="engine-picker">
-          <button id="engine-toggle-btn" class="engine-toggle-btn" title="Choisir le moteur">
-            <span id="engine-toggle-icon" class="engine-badge">G</span>
-            <span id="engine-toggle-label">Google France</span>
-            <svg viewBox="0 0 24 24" class="icon chevron-icon">
-              <path d="M6 9l6 6 6-6"></path>
-            </svg>
-          </button>
-
-          <div id="engine-menu" class="engine-menu hidden"></div>
-        </div>
-
         <input
           type="text"
           id="url-input"
@@ -76,7 +64,7 @@
           autocomplete="off"
         />
 
-        <button id="bookmark-add-btn" class="icon-btn" title="Ajouter aux favoris">
+        <button id="bookmark-add-btn" class="icon-btn" title="Ajouter aux favoris" aria-label="Ajouter aux favoris">
           <svg viewBox="0 0 24 24" class="icon">
             <path d="M6 4h12v16l-6-4-6 4z"></path>
           </svg>
@@ -84,28 +72,27 @@
       </div>
 
       <div class="toolbar-actions">
-        <button id="optimization-chip" class="status-chip" title="Mode optimisation">
+        <button id="optimization-chip" class="status-chip" title="Mode optimisation" aria-label="Mode optimisation">
           <svg viewBox="0 0 24 24" class="icon">
             <path d="M13 2L4 14h6l-1 8 9-12h-6z"></path>
           </svg>
-          <span>Opti</span>
         </button>
 
-        <button id="shields-btn" class="shields-button" title="Protection NAVY">
+        <button id="shields-btn" class="shields-button" title="Protections NAVY" aria-label="Protections NAVY">
           <svg viewBox="0 0 24 24" class="icon">
             <path d="M12 3l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6z"></path>
           </svg>
-          <span id="blocked-count">0</span>
+          <span id="blocked-count" class="icon-counter">0</span>
         </button>
 
-        <button id="passwords-btn" class="nav-btn nav-btn-strong" title="Coffre de mots de passe">
+        <button id="passwords-btn" class="nav-btn nav-btn-strong" title="Coffre de mots de passe" aria-label="Coffre de mots de passe">
           <svg viewBox="0 0 24 24" class="icon">
             <rect x="4" y="11" width="16" height="9" rx="2"></rect>
             <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
           </svg>
         </button>
 
-        <button id="settings-btn" class="nav-btn" title="Parametres">
+        <button id="settings-btn" class="nav-btn" title="Parametres" aria-label="Parametres">
           <svg viewBox="0 0 24 24" class="icon">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M12 2v3M12 19v3M4.9 4.9l2.2 2.2M16.9 16.9l2.2 2.2M2 12h3M19 12h3M4.9 19.1l2.2-2.2M16.9 7.1l2.2-2.2"></path>
@@ -118,8 +105,22 @@
       <div class="bookmarks-root" id="bookmarks-root"></div>
 
       <div class="bookmarks-bar-actions">
-        <button id="new-folder-btn" class="ghost-btn">Nouveau dossier</button>
-        <button id="manage-bookmarks-btn" class="ghost-btn">Organiser</button>
+        <button id="new-folder-btn" class="ghost-btn" title="Nouveau dossier" aria-label="Nouveau dossier">
+          <svg viewBox="0 0 24 24" class="icon">
+            <path d="M3 7h6l2 2h10v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <path d="M12 11v6M9 14h6"></path>
+          </svg>
+        </button>
+        <button id="manage-bookmarks-btn" class="ghost-btn" title="Organiser les favoris" aria-label="Organiser les favoris">
+          <svg viewBox="0 0 24 24" class="icon">
+            <path d="M4 6h16"></path>
+            <path d="M4 12h16"></path>
+            <path d="M4 18h16"></path>
+            <path d="M8 4v4"></path>
+            <path d="M16 10v4"></path>
+            <path d="M12 16v4"></path>
+          </svg>
+        </button>
       </div>
     </section>
 
@@ -184,7 +185,7 @@
       <button class="panel-close" data-close-panel="bookmarks-panel">Fermer</button>
     </div>
 
-    <p class="panel-copy">Glisse les dossiers et favoris pour les ranger. Depose un favori dans un dossier pour l'y classer.</p>
+    <p class="panel-copy">Glisse les dossiers et favoris pour les ranger. Ouvre un dossier pour voir son contenu plus clairement.</p>
 
     <div class="bookmark-panel-tools">
       <input id="new-folder-input" type="text" placeholder="Nom du dossier">
@@ -231,6 +232,19 @@
     </div>
 
     <div id="vault-list-view" class="vault-view hidden">
+      <div class="manual-password-form">
+        <div class="manual-password-header">
+          <strong>Ajout manuel</strong>
+          <button id="manual-password-current-btn" class="secondary-btn">URL courante</button>
+        </div>
+        <div class="manual-password-grid">
+          <input id="manual-password-url" type="text" placeholder="https://exemple.com/connexion">
+          <input id="manual-password-username" type="text" placeholder="Identifiant ou email">
+          <input id="manual-password-value" type="password" placeholder="Mot de passe">
+        </div>
+        <button id="manual-password-save-btn" class="primary-btn">Enregistrer cet identifiant</button>
+      </div>
+
       <div class="vault-toolbar">
         <input id="vault-filter" type="text" placeholder="Filtrer par site ou identifiant">
         <button id="vault-refresh-btn" class="secondary-btn">Actualiser</button>

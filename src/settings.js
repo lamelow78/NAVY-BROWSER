@@ -44,10 +44,15 @@ const DEFAULT_SETTINGS = {
   theme: 'dark',
   searchEngineId: 'google-fr',
   searchEngine: SEARCH_ENGINES['google-fr'].queryUrl,
+  compactButtons: true,
   optimizationMode: false,
+  reduceMotion: false,
   adBlockEnabled: true,
   showBookmarkBar: true,
+  launchToHomePage: true,
   passwordManagerEnabled: true,
+  autoSavePasswords: true,
+  autoFillPasswords: true,
   homePage: SEARCH_ENGINES['google-fr'].homeUrl
 };
 

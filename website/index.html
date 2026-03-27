@@ -3,224 +3,653 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NAVY Browser - Télécharger</title>
+  <title>NAVY Browser - Telechargement</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #000814 0%, #001F3F 100%);
-      color: white;
-      min-height: 100vh;
+      font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+      color: #f4fbff;
+      background:
+        radial-gradient(circle at top left, rgba(53, 167, 255, 0.18), transparent 28%),
+        radial-gradient(circle at 100% 0%, rgba(0, 204, 143, 0.16), transparent 24%),
+        linear-gradient(180deg, #06101c 0%, #071525 45%, #061019 100%);
+    }
+
+    a { color: inherit; }
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    .topbar,
+    .hero-actions,
+    .download-grid,
+    .reasons-grid,
+    .trust-grid,
+    .faq-grid,
+    .footer-links {
       display: flex;
-      flex-direction: column;
-      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .topbar {
       align-items: center;
-      padding: 20px;
+      justify-content: space-between;
+      margin-bottom: 28px;
     }
 
-    .container {
-      text-align: center;
-      max-width: 800px;
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(169, 210, 235, 0.16);
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(16px);
+      text-decoration: none;
+      font-weight: 800;
+      letter-spacing: 0.04em;
     }
 
-    .logo {
-      width: 120px;
-      height: 120px;
-      margin-bottom: 30px;
-      animation: float 3s ease-in-out infinite;
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1f78ff, #18c2d9, #0fd48c);
+      box-shadow: 0 12px 30px rgba(0, 115, 201, 0.35);
     }
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-15px); }
+    .brand-mark strong {
+      font-size: 18px;
+      color: #ffffff;
+    }
+
+    .nav-links {
+      display: inline-flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a,
+    .chip,
+    .download-card,
+    .section,
+    .compare-card,
+    .faq-card {
+      border: 1px solid rgba(169, 210, 235, 0.14);
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav-links a,
+    .hero-link {
+      padding: 10px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: #d7e9f4;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .hero-copy,
+    .hero-side {
+      border: 1px solid rgba(169, 210, 235, 0.14);
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(8, 24, 42, 0.92), rgba(7, 18, 31, 0.72));
+      padding: 28px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.26);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      margin-bottom: 16px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(17, 195, 126, 0.14);
+      color: #97f1cb;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     h1 {
-      font-size: 56px;
-      margin-bottom: 16px;
-      background: linear-gradient(135deg, #0074D9, #00A8E8, #00FF87);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      margin: 0;
+      font-size: clamp(40px, 7vw, 72px);
+      line-height: 0.96;
+      letter-spacing: -0.04em;
     }
 
-    .subtitle {
-      font-size: 20px;
-      color: #B0BEC5;
-      margin-bottom: 50px;
+    .hero-copy p,
+    .section-copy,
+    .compare-card p,
+    .faq-card p,
+    .download-meta,
+    .trust-note {
+      color: #b8cad7;
+      line-height: 1.65;
     }
 
-    .download-buttons {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 40px;
-    }
-
-    .download-btn {
-      background: linear-gradient(135deg, #0074D9, #00A8E8, #00FF87);
-      color: white;
-      text-decoration: none;
-      padding: 18px 35px;
-      border-radius: 12px;
+    .hero-copy p {
+      margin: 18px 0 0;
       font-size: 18px;
-      font-weight: bold;
-      display: flex;
+      max-width: 56ch;
+    }
+
+    .hero-actions {
+      margin-top: 24px;
       align-items: center;
-      gap: 12px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 20px rgba(0, 168, 232, 0.3);
-      min-width: 180px;
+    }
+
+    .hero-link,
+    .download-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: 18px;
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .hero-link.primary,
+    .download-link.primary {
+      background: linear-gradient(135deg, #197cff, #16c1e2, #0fcc8f);
+      color: #ffffff;
+      box-shadow: 0 18px 36px rgba(7, 93, 163, 0.36);
+      border: none;
+    }
+
+    .hero-link {
+      min-height: 52px;
+      padding: 0 18px;
+    }
+
+    .hero-link.secondary {
+      border: 1px solid rgba(169, 210, 235, 0.14);
+      color: #e4f2fb;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .hero-side {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
       justify-content: center;
     }
 
-    .download-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 30px rgba(0, 168, 232, 0.5);
+    .chip {
+      border-radius: 20px;
+      padding: 16px 18px;
     }
 
-    .download-btn svg {
-      width: 24px;
-      height: 24px;
+    .chip strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 18px;
     }
 
-    .recommended {
+    .section {
+      margin-top: 18px;
+      border-radius: 30px;
+      padding: 28px;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.22);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-end;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .section-header h2 {
+      margin: 0;
+      font-size: 32px;
+      letter-spacing: -0.03em;
+    }
+
+    .download-grid {
+      align-items: stretch;
+    }
+
+    .download-card {
+      flex: 1 1 260px;
+      min-width: 0;
+      border-radius: 24px;
+      padding: 20px;
       position: relative;
     }
 
-    .recommended::after {
-      content: 'Recommandé';
+    .download-card.recommended::before {
+      content: "OS detecte";
       position: absolute;
-      top: -8px;
-      right: -8px;
-      background: #00FF87;
-      color: #000814;
-      padding: 2px 8px;
-      border-radius: 8px;
+      top: 14px;
+      right: 14px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(17, 195, 126, 0.18);
+      color: #97f1cb;
       font-size: 11px;
-      font-weight: bold;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
 
-    .features {
-      display: flex;
-      gap: 30px;
+    .download-os {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .download-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
-      margin-top: 50px;
+      background: rgba(25, 124, 255, 0.15);
+      color: #9fd7ff;
     }
 
-    .feature {
-      text-align: center;
+    .download-link {
+      width: 100%;
+      min-height: 52px;
+      margin-top: 16px;
+      padding: 0 16px;
     }
 
-    .feature-icon {
-      font-size: 36px;
-      margin-bottom: 8px;
+    .reasons-grid,
+    .trust-grid,
+    .faq-grid {
+      align-items: stretch;
     }
 
-    .feature-text {
-      font-size: 14px;
-      color: #B0BEC5;
+    .compare-card,
+    .faq-card {
+      flex: 1 1 240px;
+      min-width: 0;
+      border-radius: 24px;
+      padding: 20px;
     }
 
-    .github-link {
-      margin-top: 30px;
-      color: #7FDBFF;
+    .compare-card strong,
+    .faq-card strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    .compare-list {
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      color: #dceef9;
+    }
+
+    .compare-list li {
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .compare-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #16c1e2, #0fcc8f);
+    }
+
+    .trust-row {
+      flex: 1 1 260px;
+      min-width: 0;
+      border-radius: 24px;
+      padding: 20px;
+      background: rgba(4, 17, 30, 0.55);
+      border: 1px solid rgba(169, 210, 235, 0.14);
+    }
+
+    .trust-row h3 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+
+    .trust-row ul {
+      margin: 0;
+      padding-left: 20px;
+      color: #dceef9;
+      line-height: 1.7;
+    }
+
+    .trust-note {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(255, 195, 87, 0.08);
+      border: 1px solid rgba(255, 195, 87, 0.14);
+    }
+
+    footer {
+      margin-top: 24px;
+      padding: 20px 0 0;
+      border-top: 1px solid rgba(169, 210, 235, 0.14);
+    }
+
+    .footer-links {
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-links a {
       text-decoration: none;
-      font-size: 14px;
+      color: #9ec7df;
     }
 
-    .github-link:hover {
-      text-decoration: underline;
+    svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
-    @media (max-width: 768px) {
-      h1 { font-size: 36px; }
-      .download-buttons { flex-direction: column; align-items: center; }
-      .features { flex-direction: column; gap: 20px; }
+    @media (max-width: 960px) {
+      .hero { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .page { width: min(100% - 20px, 100%); padding-top: 16px; }
+      .topbar,
+      .section-header,
+      .footer-links { flex-direction: column; align-items: stretch; }
+      .hero-copy, .hero-side, .section { padding: 22px; border-radius: 24px; }
+      h1 { font-size: 42px; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <svg class="logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#0074D9"/>
-          <stop offset="50%" style="stop-color:#00A8E8"/>
-          <stop offset="100%" style="stop-color:#00FF87"/>
-        </linearGradient>
-      </defs>
-      <circle cx="256" cy="256" r="240" fill="url(#g)" opacity="0.95"/>
-      <path d="M 160 150 L 160 360 L 200 360 L 200 220 L 310 360 L 350 360 L 350 150 L 310 150 L 310 290 L 200 150 Z" fill="white"/>
-    </svg>
-
-    <h1>NAVY Browser</h1>
-    <p class="subtitle">Le navigateur qui bloque 98% des pubs<br>Installation en 1 clic ⚡</p>
-
-    <div class="download-buttons">
-      <a href="https://github.com/lamelow78/NAVY-BROWSER/releases/latest/download/NAVY-Setup.exe" class="download-btn" id="windows-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
-          <line x1="9" y1="9" x2="15" y2="15"/>
-          <line x1="15" y1="9" x2="9" y2="15"/>
-        </svg>
-        Windows
+  <div class="page">
+    <header class="topbar">
+      <a class="brand" href="#top">
+        <span class="brand-mark"><strong>N</strong></span>
+        <span>NAVY Browser</span>
       </a>
 
-      <a href="https://github.com/lamelow78/NAVY-BROWSER/releases/latest/download/NAVY.dmg" class="download-btn" id="mac-btn">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 22C7.79 22.05 6.8 20.68 5.96 19.47C4.25 17 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5M13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z"/>
-        </svg>
-        macOS
-      </a>
+      <nav class="nav-links">
+        <a href="#download">Telecharger</a>
+        <a href="#pourquoi">Pourquoi NAVY</a>
+        <a href="#rgpd">RGPD</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </header>
 
-      <a href="https://github.com/lamelow78/NAVY-BROWSER/releases/latest/download/NAVY.AppImage" class="download-btn" id="linux-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-        Linux
-      </a>
-    </div>
+    <section class="hero" id="top">
+      <div class="hero-copy">
+        <span class="eyebrow">Navigation simple, locale et protegee</span>
+        <h1>NAVY met l'accent sur la vitesse, la lisibilite et la confidentialite.</h1>
+        <p>
+          NAVY est pense pour garder le web lisible: blocage publicitaire, mode optimisation,
+          coffre-fort local chiffre pour les mots de passe et interface compacte qui laisse
+          vraiment la place aux pages.
+        </p>
 
-    <div class="features">
-      <div class="feature">
-        <div class="feature-icon">🛡️</div>
-        <div class="feature-text">Bloqueur Ultra-Puissant</div>
+        <div class="hero-actions">
+          <a class="hero-link primary" href="#download">Telecharger NAVY</a>
+          <a class="hero-link secondary" href="https://github.com/lamelow78/NAVY-BROWSER">Voir le projet GitHub</a>
+        </div>
       </div>
-      <div class="feature">
-        <div class="feature-icon">🔐</div>
-        <div class="feature-text">Mots de passe intégrés</div>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">⚡</div>
-        <div class="feature-text">Mode Optimisation</div>
-      </div>
-    </div>
 
-    <a href="https://github.com/lamelow78/NAVY-BROWSER" class="github-link">
-      Code source sur GitHub →
-    </a>
+      <aside class="hero-side">
+        <div class="chip">
+          <strong>Aucune collecte de donnees personnelles</strong>
+          <span class="section-copy">Pas de compte, pas de cloud impose, pas de telemetrie marketing par defaut.</span>
+        </div>
+        <div class="chip">
+          <strong>Mots de passe gardes en local</strong>
+          <span class="section-copy">Le coffre reste sur la machine et se deverrouille avec ton mot de passe maitre.</span>
+        </div>
+        <div class="chip">
+          <strong>Plus de place pour le web</strong>
+          <span class="section-copy">Barre compacte, onglets propres, favoris ranges, actions claires et sans surcharge.</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section" id="download">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Installateurs officiels</span>
+          <h2>Telecharge NAVY pour ton systeme</h2>
+        </div>
+        <p class="section-copy">Les boutons pointent vers les derniers builds publies sur GitHub Releases.</p>
+      </div>
+
+      <div class="download-grid">
+        <article class="download-card" id="windows-card">
+          <div class="download-os">
+            <span class="download-icon">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="3" width="8" height="8"></rect>
+                <rect x="13" y="3" width="8" height="8"></rect>
+                <rect x="3" y="13" width="8" height="8"></rect>
+                <rect x="13" y="13" width="8" height="8"></rect>
+              </svg>
+            </span>
+            Windows
+          </div>
+          <p class="download-meta">
+            Installateur `.exe` pour Windows. Si SmartScreen affiche un avertissement, c'est le temps
+            que la reputation de signature soit etablie. Une signature code officielle reste la vraie solution.
+          </p>
+          <a class="download-link primary" id="windows-btn" href="https://github.com/lamelow78/NAVY-BROWSER/releases/latest/download/NAVY-Setup.exe">Telecharger pour Windows</a>
+        </article>
+
+        <article class="download-card" id="mac-card">
+          <div class="download-os">
+            <span class="download-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M15 4c.4 1.4 0 2.8-.9 3.8-.9 1-2.2 1.6-3.5 1.5-.2-1.4.3-2.8 1.2-3.8S13.8 4 15 4z"></path>
+                <path d="M18 17.5c-.8 1.3-1.7 2.4-3.1 2.5-1.2.1-1.6-.7-3-.7s-1.8.7-2.9.8c-1.4 0-2.5-1.2-3.4-2.5-1.8-2.8-2-6 .2-7.8 1-.8 2.2-1.2 3.4-1.2 1.2 0 2.2.7 2.8.7.7 0 1.9-.8 3.3-.7.7 0 2.7.3 4 2.1-.1 0-2.4 1.4-2.3 4 .1 2.4 2.1 3.2 2.2 3.2-.1.2-.4.8-1.2 1.6z"></path>
+              </svg>
+            </span>
+            macOS
+          </div>
+          <p class="download-meta">Archive `.dmg` pour Mac avec la meme base NAVY et les memes protections locales.</p>
+          <a class="download-link primary" id="mac-btn" href="https://github.com/lamelow78/NAVY-BROWSER/releases/latest/download/NAVY.dmg">Telecharger pour macOS</a>
+        </article>
+
+        <article class="download-card" id="linux-card">
+          <div class="download-os">
+            <span class="download-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3v18"></path>
+                <path d="M5 7l7-4 7 4"></path>
+                <path d="M5 17l7 4 7-4"></path>
+              </svg>
+            </span>
+            Linux
+          </div>
+          <p class="download-meta">Build `.AppImage` portable pour lancer NAVY sans installation lourde.</p>
+          <a class="download-link primary" id="linux-btn" href="https://github.com/lamelow78/NAVY-BROWSER/releases/latest/download/NAVY.AppImage">Telecharger pour Linux</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="pourquoi">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Pourquoi nous</span>
+          <h2>Pourquoi choisir NAVY plutot qu'un autre navigateur ?</h2>
+        </div>
+        <p class="section-copy">NAVY mise sur un angle simple: moins de bruit, moins de collecte, plus de controle local.</p>
+      </div>
+
+      <div class="reasons-grid">
+        <article class="compare-card">
+          <strong>Un navigateur plus lisible</strong>
+          <p>La barre principale reste compacte, les commandes utiles sont directes et l'espace principal appartient aux pages web.</p>
+          <ul class="compare-list">
+            <li>Interface resserree avec onglets et favoris ranges</li>
+            <li>Mode optimisation pour alleger le chargement</li>
+            <li>Boutons visuels rapides sans interface surchargee</li>
+          </ul>
+        </article>
+
+        <article class="compare-card">
+          <strong>Le coffre reste chez toi</strong>
+          <p>Les identifiants sont sauvegardes sur la machine, chiffres et deverrouilles avec un mot de passe maitre.</p>
+          <ul class="compare-list">
+            <li>Pas d'obligation de compte distant</li>
+            <li>Ajout automatique et ajout manuel possibles</li>
+            <li>Auto-remplissage base sur l'URL visitee</li>
+          </ul>
+        </article>
+
+        <article class="compare-card">
+          <strong>Protection plus franche</strong>
+          <p>NAVY coupe les regies pub et les trackers les plus frequents au niveau reseau, avec des stats visibles.</p>
+          <ul class="compare-list">
+            <li>Blocage pub et trackers</li>
+            <li>Mode opti pour les ressources lourdes</li>
+            <li>Reglages separables suivant tes besoins</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="rgpd">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">RGPD et confidentialite</span>
+          <h2>Ce que NAVY fait et surtout ce que NAVY ne fait pas</h2>
+        </div>
+        <p class="section-copy">Le principe retenu ici est la sobriete de donnees: on collecte le minimum, idealement rien.</p>
+      </div>
+
+      <div class="trust-grid">
+        <article class="trust-row">
+          <h3>Pas de collecte marketing</h3>
+          <ul>
+            <li>Pas de profil publicitaire cree par NAVY.</li>
+            <li>Pas de vente ou partage de donnees personnelles a des tiers par NAVY.</li>
+            <li>Pas de tableau de bord analytics utilisateur active par defaut dans l'application.</li>
+          </ul>
+        </article>
+
+        <article class="trust-row">
+          <h3>Traitement local par defaut</h3>
+          <ul>
+            <li>Les mots de passe restent en local sur la machine.</li>
+            <li>Le coffre-fort est chiffre et protege par mot de passe maitre.</li>
+            <li>Les favoris et preferences sont stockes localement pour ton usage.</li>
+          </ul>
+        </article>
+
+        <article class="trust-row">
+          <h3>Transparence utilisateur</h3>
+          <ul>
+            <li>Tu choisis le moteur de recherche dans les parametres.</li>
+            <li>Tu peux activer ou couper le bloqueur, le mode opti et le gestionnaire de mots de passe.</li>
+            <li>Le projet peut etre audite car le code source est public sur GitHub.</li>
+          </ul>
+        </article>
+      </div>
+
+      <p class="trust-note">
+        Important: le navigateur ouvre des sites tiers comme Google, Qwant ou Bing si tu les choisis comme moteur.
+        Ces services appliquent ensuite leurs propres politiques de confidentialite. NAVY n'ajoute pas une collecte
+        marketing supplementaire par-dessus.
+      </p>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">FAQ</span>
+          <h2>Questions frequentes</h2>
+        </div>
+        <p class="section-copy">Les points que les utilisateurs regardent le plus avant l'installation.</p>
+      </div>
+
+      <div class="faq-grid">
+        <article class="faq-card">
+          <strong>Pourquoi Windows affiche parfois un avertissement ?</strong>
+          <p>
+            Le message SmartScreen apparait surtout quand une application n'a pas encore de signature code reconnue
+            ou pas assez de reputation de diffusion. Ce point ne se retire pas proprement par une ligne de code.
+          </p>
+        </article>
+
+        <article class="faq-card">
+          <strong>Est-ce que NAVY remplace mon moteur de recherche ?</strong>
+          <p>
+            NAVY laisse le choix du moteur dans les parametres. La barre principale reste volontairement plus simple
+            et utilise ensuite le moteur selectionne.
+          </p>
+        </article>
+
+        <article class="faq-card">
+          <strong>Ou sont stockes les mots de passe ?</strong>
+          <p>
+            Dans le coffre-fort local du navigateur, chiffre sur la machine. Ils ne partent pas dans un cloud NAVY.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-links">
+        <span>Projet NAVY Browser</span>
+        <div class="nav-links">
+          <a href="https://github.com/lamelow78/NAVY-BROWSER">GitHub</a>
+          <a href="https://github.com/lamelow78/NAVY-BROWSER/releases/latest">Derniere release</a>
+        </div>
+      </div>
+    </footer>
   </div>
 
   <script>
     function detectOS() {
       const platform = navigator.platform.toLowerCase();
       const userAgent = navigator.userAgent.toLowerCase();
-      
+
       if (platform.includes('win') || userAgent.includes('windows')) return 'windows';
       if (platform.includes('mac') || userAgent.includes('mac')) return 'mac';
       if (platform.includes('linux') || userAgent.includes('linux')) return 'linux';
-      
       return 'windows';
     }
 
     const os = detectOS();
-    const btn = document.getElementById(os + '-btn');
-    if (btn) {
-      btn.classList.add('recommended');
+    const card = document.getElementById(os + '-card');
+    if (card) {
+      card.classList.add('recommended');
     }
   </script>
 </body>

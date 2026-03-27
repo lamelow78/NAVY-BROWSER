@@ -2,7 +2,6 @@ const el = (id) => document.getElementById(id);
 const tabsList = el('tabs-list');
 const webviewStack = el('webview-stack');
 const urlInput = el('url-input');
-const engineMenu = el('engine-menu');
 const bookmarksRoot = el('bookmarks-root');
 const bookmarkFolderStrip = el('bookmark-folder-strip');
 const bookmarkManagerTree = el('bookmark-manager-tree');
@@ -21,7 +20,6 @@ const state = {
   recentCaptures: new Map()
 };
 
-const badgeMap = { 'google-fr': 'GF', google: 'G', duckduckgo: 'D', bing: 'B', qwant: 'Q', startpage: 'S' };
 let seq = 0;
 let toastTimer = null;
 
@@ -31,8 +29,8 @@ function clone(v) { return JSON.parse(JSON.stringify(v)); }
 function activeTab() { return state.tabs.find((tab) => tab.id === state.activeTabId) || null; }
 function activeWebview() { const tab = activeTab(); return tab ? tab.webview : null; }
 function engineMeta(id) { return state.engines[id] || state.engines['google-fr']; }
-function badge(id) { return badgeMap[id] || 'W'; }
 function favicon(url) { try { return `https://www.google.com/s2/favicons?sz=32&domain=${encodeURIComponent(new URL(url).hostname)}`; } catch (error) { return ''; } }
+function currentUrl() { const tab = activeTab(); return tab ? tab.url : state.settings.homePage; }
 
 function toastMsg(message, kind = 'info') {
   toast.textContent = message;
@@ -60,12 +58,13 @@ function setAddress(url) {
 function applySettings() {
   document.body.setAttribute('data-theme', state.settings.theme);
   document.body.classList.toggle('mode-optimization', Boolean(state.settings.optimizationMode));
+  document.body.classList.toggle('compact-buttons', Boolean(state.settings.compactButtons));
+  document.body.classList.toggle('reduce-motion', Boolean(state.settings.reduceMotion));
   el('bookmarks-bar').classList.toggle('hidden', !state.settings.showBookmarkBar);
   el('optimization-chip').classList.toggle('active', Boolean(state.settings.optimizationMode));
   el('adblock-toggle').classList.toggle('active', Boolean(state.settings.adBlockEnabled));
   el('optimization-toggle').classList.toggle('active', Boolean(state.settings.optimizationMode));
-  el('engine-toggle-label').textContent = engineMeta(state.settings.searchEngineId).label;
-  el('engine-toggle-icon').textContent = badge(state.settings.searchEngineId);
+  urlInput.placeholder = `Rechercher avec ${engineMeta(state.settings.searchEngineId).label} ou entrer une URL`;
 }
 
 async function refreshSettings() {
@@ -75,29 +74,12 @@ async function refreshSettings() {
 
 function closePanels() {
   ['shields-panel', 'password-panel', 'bookmarks-panel'].forEach((id) => el(id).classList.remove('active'));
-  engineMenu.classList.add('hidden');
 }
 
 function updateNavButtons() {
   const view = activeWebview();
   el('back-btn').disabled = !view || !view.canGoBack();
   el('forward-btn').disabled = !view || !view.canGoForward();
-}
-
-function renderEngineMenu() {
-  engineMenu.innerHTML = Object.values(state.engines).map((engine) => `
-    <button class="engine-option ${engine.id === state.settings.searchEngineId ? 'active' : ''}" data-engine="${engine.id}">
-      <span class="engine-badge">${badge(engine.id)}</span>
-      <span class="engine-option-copy"><strong>${esc(engine.label)}</strong><small>${esc(new URL(engine.homeUrl).hostname)}</small></span>
-    </button>
-  `).join('');
-  engineMenu.querySelectorAll('[data-engine]').forEach((button) => button.addEventListener('click', async () => {
-    state.settings = await window.navyAPI.saveSettings({ ...state.settings, searchEngineId: button.dataset.engine });
-    applySettings();
-    renderEngineMenu();
-    engineMenu.classList.add('hidden');
-    toastMsg(`Moteur actif : ${engineMeta(button.dataset.engine).label}`, 'success');
-  }));
 }
 
 function renderTabs() {
@@ -124,15 +106,20 @@ function updateTab(id, patch) {
   Object.assign(tab, patch);
   if (!tab.favicon) { tab.favicon = favicon(tab.url); }
   renderTabs();
-  if (id === state.activeTabId) { setAddress(tab.url); updateNavButtons(); }
+  if (id === state.activeTabId) {
+    setAddress(tab.url);
+    updateNavButtons();
+    seedManualPasswordUrl();
+  }
 }
 
 function bindWebview(tab) {
   const view = tab.webview;
   view.addEventListener('did-start-loading', () => updateTab(tab.id, { loading: true }));
   view.addEventListener('did-stop-loading', () => {
-    updateTab(tab.id, { loading: false, url: view.getURL() || tab.url, title: view.getTitle() || tab.title, favicon: tab.favicon || favicon(view.getURL() || tab.url) });
-    if (tab.id === state.activeTabId) { autoFill(view, view.getURL() || tab.url, 0); }
+    const url = view.getURL() || tab.url;
+    updateTab(tab.id, { loading: false, url, title: view.getTitle() || tab.title, favicon: tab.favicon || favicon(url) });
+    if (tab.id === state.activeTabId) { autoFill(view, url, 0); }
   });
   view.addEventListener('did-navigate', (event) => updateTab(tab.id, { url: event.url, favicon: favicon(event.url) }));
   view.addEventListener('did-navigate-in-page', (event) => updateTab(tab.id, { url: event.url }));
@@ -166,7 +153,11 @@ function activateTab(id) {
   state.tabs.forEach((tab) => tab.webview.classList.toggle('active', tab.id === id));
   const tab = activeTab();
   renderTabs();
-  if (tab) { setAddress(tab.url); updateNavButtons(); }
+  if (tab) {
+    setAddress(tab.url);
+    updateNavButtons();
+    seedManualPasswordUrl();
+  }
 }
 
 function closeTab(id) {
@@ -189,7 +180,18 @@ function goTo(target) {
 
 function topFolders() { return state.bookmarks.filter((node) => node.type === 'folder'); }
 function rootBookmarks() { return state.bookmarks.filter((node) => node.type === 'bookmark'); }
-function findNode(nodes, id) { for (const node of nodes) { if (node.id === id) { return node; } if (node.type === 'folder') { const nested = findNode(node.items, id); if (nested) { return nested; } } } return null; }
+
+function findNode(nodes, id) {
+  for (const node of nodes) {
+    if (node.id === id) { return node; }
+    if (node.type === 'folder') {
+      const nested = findNode(node.items, id);
+      if (nested) { return nested; }
+    }
+  }
+  return null;
+}
+
 function folderPath(nodes, id, path = []) {
   for (const node of nodes) {
     if (node.type !== 'folder') { continue; }
@@ -200,11 +202,10 @@ function folderPath(nodes, id, path = []) {
   }
   return [];
 }
+
 function currentFolder() { return state.activeFolderId ? findNode(state.bookmarks, state.activeFolderId) : null; }
-function currentTopFolderId() {
-  const top = folderPath(state.bookmarks, state.activeFolderId)[0];
-  return top ? top.id : null;
-}
+function currentFolderTrail() { return state.activeFolderId ? folderPath(state.bookmarks, state.activeFolderId) : []; }
+function currentTopFolderId() { const top = currentFolderTrail()[0]; return top ? top.id : null; }
 
 function ensureFolder() {
   const folder = currentFolder();
@@ -216,28 +217,64 @@ function renderBookmarkBar() {
   ensureFolder();
   bookmarksRoot.innerHTML = [
     ...rootBookmarks().map((node) => `<button class="bookmark-item-chip" data-open-bookmark="${node.id}" type="button"><img class="favicon" src="${esc(favicon(node.url))}" alt=""><span>${esc(node.title)}</span></button>`),
-    ...topFolders().map((folder) => `<button class="bookmark-folder-chip ${folder.id === currentTopFolderId() ? 'active' : ''}" data-folder="${folder.id}" type="button">${esc(folder.title)} <small>${folder.items.length}</small></button>`)
+    ...topFolders().map((folder) => `<button class="bookmark-folder-chip ${folder.id === currentTopFolderId() ? 'active' : ''}" data-folder="${folder.id}" type="button"><span class="folder-badge">D</span><span>${esc(folder.title)}</span><small>${folder.items.length}</small></button>`)
   ].join('');
+
   bookmarksRoot.querySelectorAll('[data-open-bookmark]').forEach((button) => button.addEventListener('click', () => {
-    const node = findNode(state.bookmarks, button.dataset.openBookmark); if (node && node.url) { goTo(node.url); }
+    const node = findNode(state.bookmarks, button.dataset.openBookmark);
+    if (node && node.url) { goTo(node.url); }
   }));
+
   bookmarksRoot.querySelectorAll('[data-folder]').forEach((button) => button.addEventListener('click', () => {
-    state.activeFolderId = button.dataset.folder === state.activeFolderId ? null : button.dataset.folder;
+    state.activeFolderId = button.dataset.folder;
     renderBookmarks();
   }));
 
   const folder = currentFolder();
-  if (!folder) { bookmarkFolderStrip.classList.add('hidden'); bookmarkFolderStrip.innerHTML = ''; return; }
+  if (!folder) {
+    bookmarkFolderStrip.classList.add('hidden');
+    bookmarkFolderStrip.innerHTML = '';
+    return;
+  }
+
+  const trail = currentFolderTrail();
+  const parent = trail.length > 1 ? trail[trail.length - 2] : null;
   bookmarkFolderStrip.classList.remove('hidden');
-  bookmarkFolderStrip.innerHTML = folder.items.length
-    ? folder.items.map((node) => `<button class="bookmark-item-chip ${node.type === 'folder' ? 'folder-child' : ''}" data-folder-item="${node.id}" type="button">${node.type === 'bookmark' ? `<img class="favicon" src="${esc(favicon(node.url))}" alt="">` : ''}<span>${esc(node.title)}</span></button>`).join('')
-    : '<span class="bookmark-empty">Ce dossier est vide.</span>';
+  bookmarkFolderStrip.innerHTML = `
+    <div class="folder-strip-shell">
+      <div class="folder-strip-header">
+        <div class="folder-strip-title">
+          ${parent ? `<button class="folder-strip-action" data-folder-back="${parent.id}" title="Dossier parent" aria-label="Dossier parent"><svg viewBox="0 0 24 24" class="icon"><path d="M15 18l-6-6 6-6"></path></svg></button>` : ''}
+          <div><strong>${esc(folder.title)}</strong><span>${folder.items.length} element(s)</span></div>
+        </div>
+        <button class="folder-strip-action" data-folder-close="1" title="Fermer le dossier" aria-label="Fermer le dossier"><svg viewBox="0 0 24 24" class="icon"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg></button>
+      </div>
+      <div class="folder-strip-items">
+        ${folder.items.length ? folder.items.map((node) => `
+          <button class="bookmark-item-chip ${node.type === 'folder' ? 'folder-child' : ''}" data-folder-item="${node.id}" type="button">
+            ${node.type === 'bookmark' ? `<img class="favicon" src="${esc(favicon(node.url))}" alt="">` : '<span class="folder-badge">D</span>'}
+            <span>${esc(node.title)}</span>
+          </button>
+        `).join('') : '<span class="bookmark-empty">Ce dossier est vide.</span>'}
+      </div>
+    </div>
+  `;
+
   bookmarkFolderStrip.querySelectorAll('[data-folder-item]').forEach((button) => button.addEventListener('click', () => {
     const node = findNode(state.bookmarks, button.dataset.folderItem);
     if (!node) { return; }
     if (node.type === 'folder') { state.activeFolderId = node.id; renderBookmarks(); return; }
     if (node.url) { goTo(node.url); }
   }));
+  const closeFolderButton = bookmarkFolderStrip.querySelector('[data-folder-close]');
+  if (closeFolderButton) {
+    closeFolderButton.addEventListener('click', () => { state.activeFolderId = null; renderBookmarks(); });
+  }
+
+  const backFolderButton = bookmarkFolderStrip.querySelector('[data-folder-back]');
+  if (backFolderButton) {
+    backFolderButton.addEventListener('click', (event) => { state.activeFolderId = event.currentTarget.dataset.folderBack; renderBookmarks(); });
+  }
 }
 
 function renderBookmarkManager() {
@@ -248,10 +285,7 @@ function renderBookmarkManager() {
       <div class="bookmark-column-body">
         ${column.items.length ? column.items.map((node) => `
           <div class="bookmark-card" draggable="true" data-drag="${node.id}">
-            <div class="bookmark-card-main">
-              <strong>${esc(node.title)}</strong>
-              <small>${node.type === 'bookmark' ? esc(node.url) : 'Dossier'}</small>
-            </div>
+            <div class="bookmark-card-main"><strong>${esc(node.title)}</strong><small>${node.type === 'bookmark' ? esc(node.url) : 'Dossier'}</small></div>
             <div class="bookmark-card-actions">
               ${node.type === 'bookmark' ? `<button class="tiny-btn" data-open="${node.id}">Ouvrir</button>` : `<button class="tiny-btn" data-focus-folder="${node.id}">Voir</button>`}
               <button class="tiny-btn danger" data-delete="${node.id}">Supprimer</button>
@@ -269,10 +303,13 @@ function renderBookmarkManager() {
     column.addEventListener('drop', async (event) => { event.preventDefault(); column.classList.remove('drag-over'); await moveBookmark(state.draggedNodeId, column.dataset.drop); });
   });
   bookmarkManagerTree.querySelectorAll('[data-open]').forEach((button) => button.addEventListener('click', () => {
-    const node = findNode(state.bookmarks, button.dataset.open); if (node && node.url) { goTo(node.url); el('bookmarks-panel').classList.remove('active'); }
+    const node = findNode(state.bookmarks, button.dataset.open);
+    if (node && node.url) { goTo(node.url); el('bookmarks-panel').classList.remove('active'); }
   }));
   bookmarkManagerTree.querySelectorAll('[data-focus-folder]').forEach((button) => button.addEventListener('click', () => {
-    state.activeFolderId = button.dataset.focusFolder; renderBookmarks(); el('bookmarks-panel').classList.remove('active');
+    state.activeFolderId = button.dataset.focusFolder;
+    renderBookmarks();
+    el('bookmarks-panel').classList.remove('active');
   }));
   bookmarkManagerTree.querySelectorAll('[data-delete]').forEach((button) => button.addEventListener('click', async () => {
     if (!window.confirm('Supprimer cet element ?')) { return; }
@@ -282,11 +319,7 @@ function renderBookmarkManager() {
 }
 
 function renderBookmarks() { renderBookmarkBar(); renderBookmarkManager(); }
-
-async function loadBookmarks() {
-  state.bookmarks = await window.navyAPI.getBookmarks();
-  renderBookmarks();
-}
+async function loadBookmarks() { state.bookmarks = await window.navyAPI.getBookmarks(); renderBookmarks(); }
 
 function removeNode(nodes, id) {
   for (let i = 0; i < nodes.length; i += 1) {
@@ -335,8 +368,9 @@ async function createFolder() {
   toastMsg('Dossier cree.', 'success');
 }
 
-function mask(pwd) { return '*'.repeat(Math.max(8, pwd.length)); }
+function mask(password) { return '*'.repeat(Math.max(8, String(password || '').length)); }
 function vaultMsg(message = '', kind = 'info') { el('vault-feedback').textContent = message; el('vault-feedback').dataset.kind = message ? kind : ''; }
+function seedManualPasswordUrl() { const input = el('manual-password-url'); if (input && !input.value.trim()) { input.value = currentUrl() || state.settings.homePage || ''; } }
 
 async function refreshVault() {
   state.vault = await window.navyAPI.getPasswordVaultStatus();
@@ -344,19 +378,15 @@ async function refreshVault() {
   el('vault-setup-view').classList.toggle('hidden', state.vault.configured);
   el('vault-unlock-view').classList.toggle('hidden', !state.vault.configured || state.vault.unlocked);
   el('vault-list-view').classList.toggle('hidden', !state.vault.unlocked);
-  el('vault-status-text').textContent = !state.vault.configured
-    ? 'Configure un mot de passe maitre pour proteger tes identifiants en local.'
-    : state.vault.unlocked
-      ? `Coffre deverrouille. ${state.vault.entryCount} identifiant(s) disponibles.`
-      : `Coffre configure. ${state.vault.entryCount} identifiant(s) disponibles apres deverrouillage.`;
-  if (state.vault.unlocked) { await loadPasswords(); }
+  el('vault-status-text').textContent = !state.vault.configured ? 'Configure un mot de passe maitre pour proteger tes identifiants en local.' : state.vault.unlocked ? `Coffre deverrouille. ${state.vault.entryCount} identifiant(s) disponibles.` : `Coffre configure. ${state.vault.entryCount} identifiant(s) disponibles apres deverrouillage.`;
+  if (state.vault.unlocked) { await loadPasswords(); seedManualPasswordUrl(); }
 }
 
 async function loadPasswords() { state.passwords = await window.navyAPI.getAllPasswords(); renderPasswords(); }
 
 function renderPasswords() {
   const filter = String(el('vault-filter').value || '').trim().toLowerCase();
-  const list = state.passwords.filter((item) => !filter || item.domain.toLowerCase().includes(filter) || item.username.toLowerCase().includes(filter));
+  const list = state.passwords.filter((item) => !filter || item.domain.toLowerCase().includes(filter) || item.username.toLowerCase().includes(filter) || item.origin.toLowerCase().includes(filter));
   el('password-list').innerHTML = !list.length ? '<div class="empty-state">Aucun mot de passe ne correspond a cette recherche.</div>' : list.map((item) => `
     <article class="password-item">
       <div class="password-item-header"><div><div class="password-item-domain">${esc(item.domain)}</div><div class="password-item-origin">${esc(item.origin)}</div></div><button class="danger-btn" data-del-pwd="${item.id}">Supprimer</button></div>
@@ -383,13 +413,25 @@ function renderPasswords() {
 async function fillCreds(view, cred) {
   if (!view || !cred) { return false; }
   const ok = await view.executeJavaScript(`(() => {
-    const forms = [...document.querySelectorAll('form')]; if (!forms.length) { forms.push(document); }
+    const forms = [...document.querySelectorAll('form')];
+    if (!forms.length) { forms.push(document); }
+    const selectors = 'input[autocomplete="username"], input[autocomplete="email"], input[type="email"], input[name*="user" i], input[name*="login" i], input[name*="mail" i], input[name*="ident" i], input[id*="user" i], input[id*="login" i], input[id*="mail" i], input[type="text"]';
+    const username = ${JSON.stringify(cred.username)};
+    const password = ${JSON.stringify(cred.password)};
     for (const form of forms) {
-      const pass = form.querySelector('input[type="password"]'); if (!pass) { continue; }
-      const user = form.querySelector('input[autocomplete="username"], input[type="email"], input[name*="user" i], input[name*="login" i], input[name*="mail" i], input[type="text"]');
-      const u = ${JSON.stringify(cred.username)}; const p = ${JSON.stringify(cred.password)};
-      if (user) { user.value = u; user.dispatchEvent(new Event('input', { bubbles: true })); user.dispatchEvent(new Event('change', { bubbles: true })); }
-      pass.value = p; pass.dispatchEvent(new Event('input', { bubbles: true })); pass.dispatchEvent(new Event('change', { bubbles: true }));
+      const pass = form.querySelector('input[type="password"], input[autocomplete="current-password"], input[autocomplete="new-password"]');
+      if (!pass) { continue; }
+      const user = form.querySelector(selectors);
+      if (user) {
+        user.focus();
+        user.value = username;
+        user.dispatchEvent(new Event('input', { bubbles: true }));
+        user.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      pass.focus();
+      pass.value = password;
+      pass.dispatchEvent(new Event('input', { bubbles: true }));
+      pass.dispatchEvent(new Event('change', { bubbles: true }));
       return true;
     }
     return false;
@@ -399,19 +441,19 @@ async function fillCreds(view, cred) {
 }
 
 async function autoFill(view, url, attempt = 0) {
-  if (!state.settings.passwordManagerEnabled || !state.vault.unlocked || !view || !url) { return; }
+  if (!state.settings.passwordManagerEnabled || !state.settings.autoFillPasswords || !state.vault.unlocked || !view || !url) { return; }
   const cred = await window.navyAPI.getPassword(url);
   if (!cred) { return; }
   const filled = await fillCreds(view, cred);
-  if (!filled && attempt < 3) { setTimeout(() => autoFill(view, url, attempt + 1), 600 * (attempt + 1)); }
+  if (!filled && attempt < 4) { setTimeout(() => autoFill(view, url, attempt + 1), 500 * (attempt + 1)); }
 }
 
 async function capturePassword(data) {
-  if (!state.settings.passwordManagerEnabled || !data || !data.url || !data.username || !data.password) { return; }
-  const sig = `${data.url}|${data.username}|${data.password}`;
-  if (state.recentCaptures.has(sig)) { return; }
-  state.recentCaptures.set(sig, Date.now());
-  setTimeout(() => state.recentCaptures.delete(sig), 5000);
+  if (!state.settings.passwordManagerEnabled || !state.settings.autoSavePasswords || !data || !data.url || !data.username || !data.password) { return; }
+  const signature = `${data.url}|${data.username}|${data.password}`;
+  if (state.recentCaptures.has(signature)) { return; }
+  state.recentCaptures.set(signature, Date.now());
+  setTimeout(() => state.recentCaptures.delete(signature), 5000);
   await refreshVault();
   if (!state.vault.configured) { toastMsg('Configure le coffre-fort pour la sauvegarde auto.', 'warning'); return; }
   if (!state.vault.unlocked) { toastMsg('Deverrouille le coffre-fort pour la sauvegarde auto.', 'warning'); return; }
@@ -419,6 +461,23 @@ async function capturePassword(data) {
   if (current && current.username === data.username && current.password === data.password) { return; }
   const result = await window.navyAPI.savePassword(data);
   if (result.success) { await refreshVault(); toastMsg('Mot de passe enregistre automatiquement.', 'success'); }
+}
+
+async function saveManualPassword() {
+  if (!state.vault.configured) { vaultMsg('Cree d abord le coffre-fort.', 'error'); return; }
+  if (!state.vault.unlocked) { vaultMsg('Deverrouille le coffre-fort avant un ajout manuel.', 'error'); return; }
+  const url = String(el('manual-password-url').value || '').trim();
+  const username = String(el('manual-password-username').value || '').trim();
+  const password = String(el('manual-password-value').value || '').trim();
+  if (!url || !username || !password) { vaultMsg('URL, identifiant et mot de passe sont requis.', 'error'); return; }
+  const result = await window.navyAPI.savePassword({ url, username, password });
+  if (!result.success) { vaultMsg(result.error || 'Enregistrement manuel impossible.', 'error'); return; }
+  el('manual-password-username').value = '';
+  el('manual-password-value').value = '';
+  vaultMsg('Identifiant enregistre dans le coffre.', 'success');
+  await refreshVault();
+  const tab = activeTab();
+  if (tab && tab.url) { await autoFill(activeWebview(), tab.url, 0); }
 }
 
 function bind() {
@@ -429,10 +488,13 @@ function bind() {
   el('home-btn').addEventListener('click', () => goTo(state.settings.homePage));
   el('new-tab-btn').addEventListener('click', () => createTab(state.settings.homePage, true));
   el('bookmark-add-btn').addEventListener('click', addCurrentBookmark);
-  el('engine-toggle-btn').addEventListener('click', (event) => { event.stopPropagation(); engineMenu.classList.toggle('hidden'); });
-  el('optimization-chip').addEventListener('click', async () => { state.settings = await window.navyAPI.saveSettings({ ...state.settings, optimizationMode: !state.settings.optimizationMode }); applySettings(); toastMsg(state.settings.optimizationMode ? 'Mode optimisation active.' : 'Mode optimisation desactive.', 'success'); });
+  el('optimization-chip').addEventListener('click', async () => {
+    state.settings = await window.navyAPI.saveSettings({ ...state.settings, optimizationMode: !state.settings.optimizationMode });
+    applySettings();
+    toastMsg(state.settings.optimizationMode ? 'Mode optimisation active.' : 'Mode optimisation desactive.', 'success');
+  });
   el('shields-btn').addEventListener('click', () => { el('shields-panel').classList.toggle('active'); el('password-panel').classList.remove('active'); el('bookmarks-panel').classList.remove('active'); });
-  el('passwords-btn').addEventListener('click', async () => { el('password-panel').classList.toggle('active'); el('shields-panel').classList.remove('active'); el('bookmarks-panel').classList.remove('active'); await refreshVault(); });
+  el('passwords-btn').addEventListener('click', async () => { el('password-panel').classList.toggle('active'); el('shields-panel').classList.remove('active'); el('bookmarks-panel').classList.remove('active'); seedManualPasswordUrl(); await refreshVault(); });
   el('manage-bookmarks-btn').addEventListener('click', () => { el('bookmarks-panel').classList.toggle('active'); el('password-panel').classList.remove('active'); el('shields-panel').classList.remove('active'); renderBookmarkManager(); });
   el('settings-btn').addEventListener('click', () => { window.location.href = 'settings.html'; });
   el('new-folder-btn').addEventListener('click', createFolder);
@@ -444,21 +506,32 @@ function bind() {
   el('bookmark-root-dropzone').addEventListener('drop', async (event) => { event.preventDefault(); el('bookmark-root-dropzone').classList.remove('drag-over'); await moveBookmark(state.draggedNodeId, '__root__'); });
   document.querySelectorAll('[data-close-panel]').forEach((button) => button.addEventListener('click', closePanels));
   el('vault-create-btn').addEventListener('click', async () => {
-    const password = el('vault-master-password').value; const confirm = el('vault-master-confirm').value;
+    const password = el('vault-master-password').value;
+    const confirm = el('vault-master-confirm').value;
     if (password !== confirm) { vaultMsg('Les deux mots de passe ne correspondent pas.', 'error'); return; }
-    const result = await window.navyAPI.setupPasswordVault(password); if (!result.success) { vaultMsg(result.error || 'Creation impossible.', 'error'); return; }
+    const result = await window.navyAPI.setupPasswordVault(password);
+    if (!result.success) { vaultMsg(result.error || 'Creation impossible.', 'error'); return; }
     const tab = activeTab();
-    el('vault-master-password').value = ''; el('vault-master-confirm').value = ''; vaultMsg('Coffre cree et deverrouille.', 'success'); await refreshVault(); await autoFill(activeWebview(), tab ? tab.url : '', 0);
+    el('vault-master-password').value = '';
+    el('vault-master-confirm').value = '';
+    vaultMsg('Coffre cree et deverrouille.', 'success');
+    await refreshVault();
+    await autoFill(activeWebview(), tab ? tab.url : '', 0);
   });
   el('vault-unlock-btn').addEventListener('click', async () => {
     const result = await window.navyAPI.unlockPasswordVault(el('vault-unlock-password').value);
     if (!result.success) { vaultMsg(result.error || 'Deverrouillage impossible.', 'error'); return; }
     const tab = activeTab();
-    el('vault-unlock-password').value = ''; vaultMsg('Coffre deverrouille.', 'success'); await refreshVault(); await autoFill(activeWebview(), tab ? tab.url : '', 0);
+    el('vault-unlock-password').value = '';
+    vaultMsg('Coffre deverrouille.', 'success');
+    await refreshVault();
+    await autoFill(activeWebview(), tab ? tab.url : '', 0);
   });
   el('vault-lock-btn').addEventListener('click', async () => { await window.navyAPI.lockPasswordVault(); vaultMsg('Coffre verrouille.', 'info'); await refreshVault(); });
   el('vault-refresh-btn').addEventListener('click', refreshVault);
   el('vault-filter').addEventListener('input', renderPasswords);
+  el('manual-password-current-btn').addEventListener('click', () => { el('manual-password-url').value = currentUrl() || state.settings.homePage || ''; });
+  el('manual-password-save-btn').addEventListener('click', saveManualPassword);
   window.navyAPI.onProtectionStats((stats) => {
     el('blocked-count').textContent = String(stats.total || 0);
     el('total-blocked').textContent = String(stats.total || 0);
@@ -467,7 +540,6 @@ function bind() {
     el('optimization-blocked').textContent = String(stats.optimization || 0);
   });
   document.addEventListener('click', (event) => {
-    if (!engineMenu.contains(event.target) && !el('engine-toggle-btn').contains(event.target)) { engineMenu.classList.add('hidden'); }
     if (!el('shields-panel').contains(event.target) && !el('shields-btn').contains(event.target)) { el('shields-panel').classList.remove('active'); }
     if (!el('password-panel').contains(event.target) && !el('passwords-btn').contains(event.target)) { el('password-panel').classList.remove('active'); }
     if (!el('bookmarks-panel').contains(event.target) && !el('manage-bookmarks-btn').contains(event.target)) { el('bookmarks-panel').classList.remove('active'); }
@@ -482,7 +554,6 @@ function bind() {
 async function init() {
   state.engines = await window.navyAPI.getSearchEngines();
   await refreshSettings();
-  renderEngineMenu();
   await loadBookmarks();
   await refreshVault();
   const stats = await window.navyAPI.getProtectionStats();
@@ -492,7 +563,7 @@ async function init() {
   el('trackers-blocked').textContent = String(stats.trackers || 0);
   el('optimization-blocked').textContent = String(stats.optimization || 0);
   bind();
-  createTab(state.settings.homePage, true);
+  createTab(state.settings.launchToHomePage ? state.settings.homePage : 'about:blank', true);
 }
 
 init();

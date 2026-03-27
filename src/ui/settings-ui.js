@@ -2,9 +2,14 @@ const themeSelect = document.getElementById('theme-select');
 const searchEngineSelect = document.getElementById('search-engine-select');
 const homePageInput = document.getElementById('home-page-input');
 const bookmarkBarToggle = document.getElementById('bookmark-bar-toggle');
+const compactButtonsToggle = document.getElementById('compact-buttons-toggle');
+const reduceMotionToggle = document.getElementById('reduce-motion-toggle');
+const launchHomeToggle = document.getElementById('launch-home-toggle');
 const adblockToggle = document.getElementById('adblock-toggle');
 const optimizationToggle = document.getElementById('optimization-toggle');
 const passwordManagerToggle = document.getElementById('password-manager-toggle');
+const autoSavePasswordsToggle = document.getElementById('auto-save-passwords-toggle');
+const autoFillPasswordsToggle = document.getElementById('auto-fill-passwords-toggle');
 const settingsStatus = document.getElementById('settings-status');
 
 let currentSettings = {};
@@ -47,9 +52,14 @@ async function loadSettingsPage() {
   searchEngineSelect.value = currentSettings.searchEngineId;
   homePageInput.value = currentSettings.homePage;
   setToggleState(bookmarkBarToggle, currentSettings.showBookmarkBar);
+  setToggleState(compactButtonsToggle, currentSettings.compactButtons);
+  setToggleState(reduceMotionToggle, currentSettings.reduceMotion);
+  setToggleState(launchHomeToggle, currentSettings.launchToHomePage);
   setToggleState(adblockToggle, currentSettings.adBlockEnabled);
   setToggleState(optimizationToggle, currentSettings.optimizationMode);
   setToggleState(passwordManagerToggle, currentSettings.passwordManagerEnabled);
+  setToggleState(autoSavePasswordsToggle, currentSettings.autoSavePasswords);
+  setToggleState(autoFillPasswordsToggle, currentSettings.autoFillPasswords);
 }
 
 themeSelect.addEventListener('change', () => {
@@ -62,9 +72,14 @@ searchEngineSelect.addEventListener('change', () => {
 });
 
 bindBooleanToggle(bookmarkBarToggle, 'showBookmarkBar');
+bindBooleanToggle(compactButtonsToggle, 'compactButtons');
+bindBooleanToggle(reduceMotionToggle, 'reduceMotion');
+bindBooleanToggle(launchHomeToggle, 'launchToHomePage');
 bindBooleanToggle(adblockToggle, 'adBlockEnabled');
 bindBooleanToggle(optimizationToggle, 'optimizationMode');
 bindBooleanToggle(passwordManagerToggle, 'passwordManagerEnabled');
+bindBooleanToggle(autoSavePasswordsToggle, 'autoSavePasswords');
+bindBooleanToggle(autoFillPasswordsToggle, 'autoFillPasswords');
 
 document.getElementById('back-btn').addEventListener('click', () => {
   window.location.href = 'index.html';
@@ -72,12 +87,12 @@ document.getElementById('back-btn').addEventListener('click', () => {
 
 document.getElementById('save-settings-btn').addEventListener('click', async () => {
   const homePage = homePageInput.value.trim();
-
-  const saved = await window.navyAPI.saveSettings({
+  const nextSettings = {
     ...currentSettings,
     homePage: homePage || searchEngines[currentSettings.searchEngineId].homeUrl
-  });
+  };
 
+  const saved = await window.navyAPI.saveSettings(nextSettings);
   currentSettings = saved;
   document.body.setAttribute('data-theme', saved.theme);
   updateStatus('Parametres enregistres avec succes.', 'success');
