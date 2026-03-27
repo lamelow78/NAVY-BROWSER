@@ -1,7 +1,7 @@
 {
   "name": "navy-browser",
   "productName": "NAVY",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Le navigateur qui bloque TOUT",
   "main": "src/main.js",
   "author": "lamelow78",
